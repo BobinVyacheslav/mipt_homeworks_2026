@@ -20,9 +20,9 @@ THIRTY_ONE_DAYS: Final = 31
 TWENTY_EIGHT_DAYS: Final = 28
 TWENTY_NINE_DAYS: Final = 29
 
-DIVISIBLE_BY_FOUR: Final = 4
-DIVISIBLE_BY_ONE_HUNDRED: Final = 100
-DIVISIBLE_BY_FOUR_HUNDRED: Final = 400
+LEAP_YEAR_DIVISOR_FOUR: Final = 4
+LEAP_YEAR_DIVISOR_ONE_HUNDRED: Final = 100
+LEAP_YEAR_DIVISOR_FOUR_HUNDRED: Final = 400
 
 DATE_LEN: Final = 10
 
@@ -70,11 +70,11 @@ def is_leap_year(year: int) -> bool:
         :return: Значение високосности.
         :rtype: bool
         """
-    if year % DIVISIBLE_BY_FOUR_HUNDRED == 0:
+    if year % LEAP_YEAR_DIVISOR_FOUR_HUNDRED == 0:
         return True
-    if year % DIVISIBLE_BY_ONE_HUNDRED == 0:
+    if year % LEAP_YEAR_DIVISOR_ONE_HUNDRED == 0:
         return False
-    return year % DIVISIBLE_BY_FOUR == 0
+    return year % LEAP_YEAR_DIVISOR_FOUR == 0
 
 
 def get_days_in_month(month: int, year: int) -> int:
@@ -295,16 +295,14 @@ def _execute_cost(arguments: list[str]) -> str:
 
 def execute_command(arguments: list[str]) -> str:
     command_name = arguments[0]
-
-    if command_name == "income":
-        return _execute_income(arguments)
-
-    if command_name == "cost":
-        return _execute_cost(arguments)
-
-    if command_name == "stats" and len(arguments) == STATS_COMMAND_LENGTH:
-        return stats_handler(arguments[1])
-
+    match command_name:
+        case "income":
+            return _execute_income(arguments)
+        case "cost":
+            return _execute_cost(arguments)
+        case "stats":
+            if len(arguments) == STATS_COMMAND_LENGTH:
+                return stats_handler(arguments[1])
     return UNKNOWN_COMMAND_MSG
 
 
