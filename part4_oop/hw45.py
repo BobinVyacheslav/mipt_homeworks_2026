@@ -54,14 +54,13 @@ class FIFOPolicy(Policy[K]):
         self._order.append(key)
 
     def get_key_to_evict(self) -> K | None:
-        if not self._order or len(self._order) < self.capacity:
+        if not self._order or len(self._order) <= self.capacity:
             return None
         return self._order[0]
 
     def remove_key(self, key: K) -> None:
-        for i in self._order:
-            if i == key:
-                self._order.remove(i)
+        if key in self._order:
+            self._order.remove(key)
 
     def clear(self) -> None:
         self._order.clear()
@@ -77,9 +76,9 @@ class LRUPolicy(Policy[K]):
     _order: list[K] = field(default_factory=list, init=False)
 
     def register_access(self, key: K) -> None:
-        if key not in self._order:
-            self._order.append(key)
-            return
+        if key in self._order:
+            self._order.remove(key)
+        self._order.append(key)
         index = 0
         for position, current_key in enumerate(self._order):
             if current_key == key:
@@ -89,14 +88,13 @@ class LRUPolicy(Policy[K]):
         self._order.append(found_key)
 
     def get_key_to_evict(self) -> K | None:
-        if not self._order or len(self._order) < self.capacity:
+        if not self._order or len(self._order) <= self.capacity:
             return None
         return self._order[0]
 
     def remove_key(self, key: K) -> None:
-        for i in self._order:
-            if i == key:
-                self._order.remove(i)
+        if key in self._order:
+            self._order.remove(key)
 
     def clear(self) -> None:
         self._order.clear()
