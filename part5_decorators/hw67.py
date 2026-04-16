@@ -72,6 +72,7 @@ class CircuitBreaker:
 
         return wrapper
 
+
 circuit_breaker = CircuitBreaker(5, 30, Exception)
 
 
