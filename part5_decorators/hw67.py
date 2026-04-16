@@ -1,7 +1,7 @@
 import functools
 import json
 from datetime import UTC, datetime, timedelta
-from typing import Any, ParamSpec, Protocol, TypeVar
+from typing import Any, Never, ParamSpec, Protocol, TypeVar
 from urllib.request import urlopen
 
 INVALID_CRITICAL_COUNT = "Breaker count must be positive integer!"
@@ -12,6 +12,10 @@ TOO_MUCH = "Too much requests, just wait."
 
 P = ParamSpec("P")
 R_co = TypeVar("R_co", covariant=True)
+
+
+def _is_invalid_positive_integer(value: object) -> bool:
+    return isinstance(value, bool) or not isinstance(value, int) or value <= 0
 
 
 class CallableWithMeta(Protocol[P, R_co]):
@@ -35,11 +39,7 @@ class CircuitBreaker:
         time_to_recover: int = 30,
         triggers_on: type[Exception] = Exception,
     ) -> None:
-        errors: list[ValueError] = []
-        if critical_count <= 0 or type(critical_count) is not int:
-            errors.append(ValueError(INVALID_CRITICAL_COUNT))
-        if time_to_recover <= 0 or type(time_to_recover) is not int:
-            errors.append(ValueError(INVALID_RECOVERY_TIME))
+        errors = self._validate_args(critical_count, time_to_recover)
         if errors:
             raise ExceptionGroup(VALIDATIONS_FAILED, errors)
         self.critical_count = critical_count
@@ -53,24 +53,45 @@ class CircuitBreaker:
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R_co:
             func_name = f"{func.__module__}.{func.__name__}"
             now = datetime.now(UTC)
-            if self.blocked_at is not None:
-                recovery_deadline = self.blocked_at + timedelta(seconds=self.time_to_recover)
-                if now < recovery_deadline:
-                    raise BreakerError(func_name, self.blocked_at)
-                self.blocked_at = None
-                self.failures_count = 0
+            self._unlock_if_recovered(now)
+            self._raise_if_blocked(func_name)
             try:
                 result = func(*args, **kwargs)
-            except self.triggers_on as e:
-                self.failures_count += 1
-                if self.failures_count < self.critical_count:
-                    raise
-                self.blocked_at = now
-                raise BreakerError(func_name, self.blocked_at) from e
-            self.failures_count = 0
-            return result
+            except self.triggers_on as error:
+                self._handle_failure(func_name, now, error)
+            else:
+                self.failures_count = 0
+                return result
 
         return wrapper
+
+    @classmethod
+    def _validate_args(cls, critical_count: object, time_to_recover: object) -> list[ValueError]:
+        errors: list[ValueError] = []
+        if _is_invalid_positive_integer(critical_count):
+            errors.append(ValueError(INVALID_CRITICAL_COUNT))
+        if _is_invalid_positive_integer(time_to_recover):
+            errors.append(ValueError(INVALID_RECOVERY_TIME))
+        return errors
+
+    def _unlock_if_recovered(self, now: datetime) -> None:
+        if self.blocked_at is None:
+            return
+        recovery_deadline = self.blocked_at + timedelta(seconds=self.time_to_recover)
+        if now >= recovery_deadline:
+            self.blocked_at = None
+            self.failures_count = 0
+
+    def _raise_if_blocked(self, func_name: str) -> None:
+        if self.blocked_at is not None:
+            raise BreakerError(func_name, self.blocked_at)
+
+    def _handle_failure(self, func_name: str, now: datetime, error: Exception) -> Never:
+        self.failures_count += 1
+        if self.failures_count < self.critical_count:
+            raise error
+        self.blocked_at = now
+        raise BreakerError(func_name, self.blocked_at) from error
 
 
 circuit_breaker = CircuitBreaker(5, 30, Exception)
