@@ -5,6 +5,7 @@ from final_project.ai_chat.chat.history import ChatHistory
 from final_project.ai_chat.chat.message import Message
 from final_project.ai_chat.llm.client import LLMClient
 from final_project.ai_chat.llm.exceptions import EmptyLLMResponseError
+from final_project.ai_chat.utils.text import normalize_text
 
 
 class ChatService:
@@ -23,9 +24,9 @@ class ChatService:
         return self._history
 
     def ask(self, user_text: str) -> str:
-        self._history.add_user_message(user_text)
+        self._history.add_user_message(normalize_text(user_text))
         self._limiter.apply(self._history)
-        answer = self._client.send_messages(self._history.messages)
+        answer = normalize_text(self._client.send_messages(self._history.messages))
         if not answer:
             raise EmptyLLMResponseError('Модель вернула пустой ответ.')
         self._history.add_assistant_message(answer)
@@ -38,8 +39,9 @@ class ChatService:
 
         chunks: list[str] = []
         for chunk in self._client.stream_messages(self._history.messages):
-            chunks.append(chunk)
-            yield chunk
+            normalized_chunk = normalize_text(chunk)
+            chunks.append(normalized_chunk)
+            yield normalized_chunk
 
         answer = ''.join(chunks)
         if not answer:
@@ -52,7 +54,7 @@ class ChatService:
 
     def ask_single(self, prompt: str, text: str) -> str:
         messages = self._single_request_messages(prompt, text)
-        answer = self._client.send_messages(messages)
+        answer = normalize_text(self._client.send_messages(messages))
         if not answer:
             raise EmptyLLMResponseError('Модель вернула пустой ответ.')
         return answer
@@ -61,8 +63,9 @@ class ChatService:
         messages = self._single_request_messages(prompt, text)
         chunks: list[str] = []
         for chunk in self._client.stream_messages(messages):
-            chunks.append(chunk)
-            yield chunk
+            normalized_chunk = normalize_text(chunk)
+            chunks.append(normalized_chunk)
+            yield normalized_chunk
 
         if not ''.join(chunks):
             raise EmptyLLMResponseError('Модель вернула пустой ответ.')
@@ -70,6 +73,8 @@ class ChatService:
     def _single_request_messages(self, prompt: str, text: str) -> list[Message]:
         messages: list[Message] = []
         if self._history.system_prompt:
-            messages.append(Message(role='system', content=self._history.system_prompt))
-        messages.append(Message(role='user', content=f'{prompt}\n\n{text}'))
+            messages.append(
+                Message(role='system', content=normalize_text(self._history.system_prompt))
+            )
+        messages.append(Message(role='user', content=normalize_text(f'{prompt}\n\n{text}')))
         return messages

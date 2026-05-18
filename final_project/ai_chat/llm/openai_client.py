@@ -4,6 +4,7 @@ from typing import Any
 
 from final_project.ai_chat.chat.message import Message
 from final_project.ai_chat.llm.exceptions import EmptyLLMResponseError, LLMError
+from final_project.ai_chat.utils.text import normalize_text
 
 
 class OpenAICompatibleClient:
@@ -32,7 +33,7 @@ class OpenAICompatibleClient:
         content = response.choices[0].message.content
         if not content:
             raise EmptyLLMResponseError('Модель вернула пустой ответ.')
-        return content
+        return normalize_text(content)
 
     def stream_messages(self, messages: list[Message]) -> Iterator[str]:
         try:
@@ -45,7 +46,7 @@ class OpenAICompatibleClient:
             for event in stream:
                 content = _extract_stream_content(event)
                 if content:
-                    yield content
+                    yield normalize_text(content)
         except Exception as exc:
             raise LLMError(f'Ошибка LLM API: {exc}') from exc
 
