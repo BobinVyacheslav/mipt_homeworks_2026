@@ -399,6 +399,10 @@ wheels = [
 name = "mipt-homeworks-2026"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "freezegun" },
+    { name = "pytest-mock" },
+]
 
 [package.dev-dependencies]
 lectures = [
@@ -423,6 +427,10 @@ test = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "freezegun", specifier = ">=1.5.5" },
+    { name = "pytest-mock", specifier = ">=3.15.1" },
+]
 
 [package.metadata.requires-dev]
 lectures = [{ name = "ipykernel", specifier = ">=7.2.0" }]
