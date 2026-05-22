@@ -1,3 +1,17 @@
+# Final project additions
+final_project/config.yaml
+final_project/.env
+final_project/__pycache__/
+final_project/.pytest_cache/
+final_project/.mypy_cache/
+final_project/.ruff_cache/
+final_project/.coverage
+final_project/htmlcov/
+final_project/.venv/
+final_project/dist/
+final_project/build/
+final_project/*.egg-info/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
