@@ -1,10 +1,35 @@
-from rich.console import Console
-from rich.markdown import Markdown
-from rich.panel import Panel
+from collections.abc import Callable
+from importlib import import_module
+from typing import Any, Protocol, cast
 
 from final_project.ai_chat.utils.text import normalize_text
 
-console = Console()
+
+class ConsoleLike(Protocol):
+    file: Any
+
+    def print(self, *objects: object, **kwargs: Any) -> None:
+        ...
+
+    def input(self, prompt: str = '', **kwargs: Any) -> str:
+        ...
+
+
+def _load_rich() -> tuple[ConsoleLike, Callable[..., object], Callable[..., object]]:
+    console_module = import_module('rich.console')
+    markdown_module = import_module('rich.markdown')
+    panel_module = import_module('rich.panel')
+    console_class = vars(console_module)['Console']
+    markdown_class = vars(markdown_module)['Markdown']
+    panel_class = vars(panel_module)['Panel']
+    return (
+        cast(ConsoleLike, console_class()),
+        cast(Callable[..., object], markdown_class),
+        cast(Callable[..., object], panel_class),
+    )
+
+
+console, Markdown, Panel = _load_rich()
 
 
 def print_welcome() -> None:

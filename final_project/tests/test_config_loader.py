@@ -89,4 +89,3 @@ def test_invalid_env_values_raise(
 
     with pytest.raises(ConfigError, match=message):
         load_config(tmp_path / 'missing.yaml')
-

@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Any
+from collections.abc import Callable
+from typing import Any, cast
 from importlib import import_module
 import os
 
@@ -91,9 +92,10 @@ def _optional_string(value: Any) -> str | None:
 
 def _load_dotenv_if_available() -> None:
     try:
-        from dotenv import load_dotenv
+        dotenv_module = import_module('dotenv')
     except ImportError:
         return
+    load_dotenv = cast(Callable[[], object], vars(dotenv_module)['load_dotenv'])
     load_dotenv()
 
 

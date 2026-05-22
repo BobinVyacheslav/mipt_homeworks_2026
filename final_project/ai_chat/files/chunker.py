@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 
 class ChunkStrategy(ABC):
     @abstractmethod
-    def split(self, text: str) -> list[str]:
-        ...
+    def split(self, text: str) -> list[str]: ...
 
 
 class ParagraphChunkStrategy(ChunkStrategy):
@@ -19,7 +18,7 @@ class MultiParagraphChunkStrategy(ChunkStrategy):
     def split(self, text: str) -> list[str]:
         paragraphs = _paragraphs(text)
         return [
-            '\n\n'.join(paragraphs[index:index + self._paragraph_count])
+            '\n\n'.join(paragraphs[index : index + self._paragraph_count])
             for index in range(0, len(paragraphs), self._paragraph_count)
         ]
 
@@ -33,7 +32,7 @@ class LengthChunkStrategy(ChunkStrategy):
         if not stripped:
             return []
         return [
-            stripped[index:index + self._length]
+            stripped[index : index + self._length]
             for index in range(0, len(stripped), self._length)
         ]
 

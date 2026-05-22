@@ -21,4 +21,3 @@ def test_length_strategy() -> None:
     chunks = LengthChunkStrategy(3).split('abcdefg')
 
     assert chunks == ['abc', 'def', 'g']
-

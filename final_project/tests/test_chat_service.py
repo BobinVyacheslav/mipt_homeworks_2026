@@ -67,4 +67,3 @@ def test_empty_answer_raises() -> None:
 
     with pytest.raises(EmptyLLMResponseError):
         service.ask('hi')
-

@@ -44,4 +44,3 @@ def test_parse_file_chunk_conflicting_args() -> None:
 
     assert command.type == CommandType.INVALID
     assert command.error is not None
-

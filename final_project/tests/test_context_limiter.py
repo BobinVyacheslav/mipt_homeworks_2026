@@ -34,4 +34,3 @@ def test_long_single_message_is_trimmed_from_left() -> None:
     ContextLimiter(limit_chars=4).apply(history)
 
     assert history.messages[0].content == '6789'
-

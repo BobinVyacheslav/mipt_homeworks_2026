@@ -39,4 +39,3 @@ def test_large_file_raises(tmp_path: Path) -> None:
 
     with pytest.raises(FileAttachmentError, match='Файл больше 5 МБ'):
         read_text_file(path)
-

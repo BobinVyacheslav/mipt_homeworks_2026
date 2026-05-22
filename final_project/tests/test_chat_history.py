@@ -19,4 +19,3 @@ def test_total_chars_counts_all_messages() -> None:
     history.add_assistant_message('defg')
 
     assert history.total_chars() == 7
-
