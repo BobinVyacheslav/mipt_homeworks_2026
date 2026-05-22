@@ -8,11 +8,9 @@ from final_project.ai_chat.utils.text import normalize_text
 class ConsoleLike(Protocol):
     file: Any
 
-    def print(self, *objects: object, **kwargs: Any) -> None:
-        ...
+    def print(self, *objects: object, **kwargs: Any) -> None: ...
 
-    def input(self, prompt: str = '', **kwargs: Any) -> str:
-        ...
+    def input(self, prompt: str = '', **kwargs: Any) -> str: ...
 
 
 def _load_rich() -> tuple[ConsoleLike, Callable[..., object], Callable[..., object]]:
